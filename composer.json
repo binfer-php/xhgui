@@ -1,9 +1,13 @@
 {
-    "name": "binfer/xhgui",
-    "authors": [
-        {
-            "name": "binfer",
-            "email": "binfer.mvp@gmail.com"
+    "name": "binfer/php-xhgui",
+    "type": "vcs",
+    "description": "A example xhprof package",
+    "keywords": ["binfer", "xhgui""],
+    "homepage": "https://github.com/binfer-php/xhgui",
+    "license":  "MIT",
+    "autoload": {
+        "psr-0": {
+            "Xhgui_": "src/"
         }
     ],
     "require": {}
