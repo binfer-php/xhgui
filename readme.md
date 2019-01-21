@@ -1,7 +1,9 @@
 
 #
 
-# 安装 mongodb, xhprof扩展
+### 安装 mongodb, xhprof扩展
+
+### 解析到webroot
 
 
 ```php
