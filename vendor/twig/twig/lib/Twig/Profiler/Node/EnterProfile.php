@@ -18,7 +18,7 @@ class Twig_Profiler_Node_EnterProfile extends Twig_Node
 {
     public function __construct($extensionName, $type, $name, $varName)
     {
-        parent::__construct(array(), array('extension_name' => $extensionName, 'name' => $name, 'type' => $type, 'var_name' => $varName));
+        parent::__construct([], ['extension_name' => $extensionName, 'name' => $name, 'type' => $type, 'var_name' => $varName]);
     }
 
     public function compile(Twig_Compiler $compiler)
@@ -35,3 +35,5 @@ class Twig_Profiler_Node_EnterProfile extends Twig_Node
         ;
     }
 }
+
+class_alias('Twig_Profiler_Node_EnterProfile', 'Twig\Profiler\Node\EnterProfileNode', false);

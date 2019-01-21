@@ -23,7 +23,7 @@ class Twig_Extension_Optimizer extends Twig_Extension
 
     public function getNodeVisitors()
     {
-        return array(new Twig_NodeVisitor_Optimizer($this->optimizers));
+        return [new Twig_NodeVisitor_Optimizer($this->optimizers)];
     }
 
     public function getName()
@@ -31,3 +31,5 @@ class Twig_Extension_Optimizer extends Twig_Extension
         return 'optimizer';
     }
 }
+
+class_alias('Twig_Extension_Optimizer', 'Twig\Extension\OptimizerExtension', false);

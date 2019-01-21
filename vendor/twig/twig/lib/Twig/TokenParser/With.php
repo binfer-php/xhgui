@@ -31,7 +31,7 @@ class Twig_TokenParser_With extends Twig_TokenParser
 
         $stream->expect(Twig_Token::BLOCK_END_TYPE);
 
-        $body = $this->parser->subparse(array($this, 'decideWithEnd'), true);
+        $body = $this->parser->subparse([$this, 'decideWithEnd'], true);
 
         $stream->expect(Twig_Token::BLOCK_END_TYPE);
 
@@ -48,3 +48,5 @@ class Twig_TokenParser_With extends Twig_TokenParser
         return 'with';
     }
 }
+
+class_alias('Twig_TokenParser_With', 'Twig\TokenParser\WithTokenParser', false);

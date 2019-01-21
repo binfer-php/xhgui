@@ -33,6 +33,8 @@ use MongoDB\Operation\DatabaseCommand;
 use MongoDB\Operation\DropCollection;
 use MongoDB\Operation\DropDatabase;
 use MongoDB\Operation\ListCollections;
+use MongoDB\Operation\ModifyCollection;
+use MongoDB\Operation\Watch;
 
 class Database
 {
@@ -41,6 +43,7 @@ class Database
         'document' => 'MongoDB\Model\BSONDocument',
         'root' => 'MongoDB\Model\BSONDocument',
     ];
+    private static $wireVersionForReadConcern = 4;
     private static $wireVersionForWritableCommandWriteConcern = 5;
 
     private $databaseName;
@@ -282,6 +285,48 @@ class Database
     }
 
     /**
+     * Return the read concern for this database.
+     *
+     * @see http://php.net/manual/en/mongodb-driver-readconcern.isdefault.php
+     * @return ReadConcern
+     */
+    public function getReadConcern()
+    {
+        return $this->readConcern;
+    }
+
+    /**
+     * Return the read preference for this database.
+     *
+     * @return ReadPreference
+     */
+    public function getReadPreference()
+    {
+        return $this->readPreference;
+    }
+
+    /**
+     * Return the type map for this database.
+     *
+     * @return array
+     */
+    public function getTypeMap()
+    {
+        return $this->typeMap;
+    }
+
+    /**
+     * Return the write concern for this database.
+     *
+     * @see http://php.net/manual/en/mongodb-driver-writeconcern.isdefault.php
+     * @return WriteConcern
+     */
+    public function getWriteConcern()
+    {
+        return $this->writeConcern;
+    }
+
+    /**
      * Returns information for all collections in this database.
      *
      * @see ListCollections::__construct() for supported options
@@ -294,6 +339,33 @@ class Database
     {
         $operation = new ListCollections($this->databaseName, $options);
         $server = $this->manager->selectServer(new ReadPreference(ReadPreference::RP_PRIMARY));
+
+        return $operation->execute($server);
+    }
+
+    /**
+     * Modifies a collection or view.
+     *
+     * @see ModifyCollection::__construct() for supported options
+     * @param string $collectionName    Collection or view to modify
+     * @param array  $collectionOptions Collection or view options to assign
+     * @param array  $options           Command options
+     * @throws InvalidArgumentException for parameter/option parsing errors
+     * @throws DriverRuntimeException for other driver errors (e.g. connection errors)
+     */
+    public function modifyCollection($collectionName, array $collectionOptions, array $options = [])
+    {
+        if ( ! isset($options['typeMap'])) {
+            $options['typeMap'] = $this->typeMap;
+        }
+
+        $server = $this->manager->selectServer(new ReadPreference(ReadPreference::RP_PRIMARY));
+
+        if ( ! isset($options['writeConcern']) && \MongoDB\server_supports_feature($server, self::$wireVersionForWritableCommandWriteConcern)) {
+            $options['writeConcern'] = $this->writeConcern;
+        }
+
+        $operation = new ModifyCollection($this->databaseName, $collectionName, $collectionOptions, $options);
 
         return $operation->execute($server);
     }
@@ -337,6 +409,36 @@ class Database
         ];
 
         return new Bucket($this->manager, $this->databaseName, $options);
+    }
+
+    /**
+     * Create a change stream for watching changes to the database.
+     *
+     * @see Watch::__construct() for supported options
+     * @param array $pipeline List of pipeline operations
+     * @param array $options  Command options
+     * @return ChangeStream
+     * @throws InvalidArgumentException for parameter/option parsing errors
+     */
+    public function watch(array $pipeline = [], array $options = [])
+    {
+        if ( ! isset($options['readPreference'])) {
+            $options['readPreference'] = $this->readPreference;
+        }
+
+        $server = $this->manager->selectServer($options['readPreference']);
+
+        if ( ! isset($options['readConcern']) && \MongoDB\server_supports_feature($server, self::$wireVersionForReadConcern)) {
+            $options['readConcern'] = $this->readConcern;
+        }
+
+        if ( ! isset($options['typeMap'])) {
+            $options['typeMap'] = $this->typeMap;
+        }
+
+        $operation = new Watch($this->manager, $this->databaseName, null, $pipeline, $options);
+
+        return $operation->execute($server);
     }
 
     /**

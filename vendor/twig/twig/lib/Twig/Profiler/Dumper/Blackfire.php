@@ -18,11 +18,11 @@ class Twig_Profiler_Dumper_Blackfire
 {
     public function dump(Twig_Profiler_Profile $profile)
     {
-        $data = array();
+        $data = [];
         $this->dumpProfile('main()', $profile, $data);
         $this->dumpChildren('main()', $profile, $data);
 
-        $start = microtime(true);
+        $start = sprintf('%f', microtime(true));
         $str = <<<EOF
 file-format: BlackfireProbe
 cost-dimensions: wt mu pmu
@@ -54,17 +54,19 @@ EOF;
     private function dumpProfile($edge, Twig_Profiler_Profile $profile, &$data)
     {
         if (isset($data[$edge])) {
-            $data[$edge]['ct'] += 1;
+            ++$data[$edge]['ct'];
             $data[$edge]['wt'] += floor($profile->getDuration() * 1000000);
             $data[$edge]['mu'] += $profile->getMemoryUsage();
             $data[$edge]['pmu'] += $profile->getPeakMemoryUsage();
         } else {
-            $data[$edge] = array(
+            $data[$edge] = [
                 'ct' => 1,
                 'wt' => floor($profile->getDuration() * 1000000),
                 'mu' => $profile->getMemoryUsage(),
                 'pmu' => $profile->getPeakMemoryUsage(),
-            );
+            ];
         }
     }
 }
+
+class_alias('Twig_Profiler_Dumper_Blackfire', 'Twig\Profiler\Dumper\BlackfireDumper', false);

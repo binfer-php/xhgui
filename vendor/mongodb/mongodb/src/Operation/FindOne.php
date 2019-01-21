@@ -30,10 +30,9 @@ use MongoDB\Exception\UnsupportedException;
  * @see http://docs.mongodb.org/manual/tutorial/query-documents/
  * @see http://docs.mongodb.org/manual/reference/operator/query-modifier/
  */
-class FindOne implements Executable
+class FindOne implements Executable, Explainable
 {
     private $find;
-    private $options;
 
     /**
      * Constructs a find command for finding a single document.
@@ -48,9 +47,22 @@ class FindOne implements Executable
      *  * comment (string): Attaches a comment to the query. If "$comment" also
      *    exists in the modifiers document, this option will take precedence.
      *
+     *  * hint (string|document): The index to use. Specify either the index
+     *    name as a string or the index key pattern as a document. If specified,
+     *    then the query system will only consider plans using the hinted index.
+     *
+     *  * max (document): The exclusive upper bound for a specific index.
+     *
+     *  * maxScan (integer): Maximum number of documents or index keys to scan
+     *    when executing the query.
+     *
+     *    This option has been deprecated since version 1.4.
+     *
      *  * maxTimeMS (integer): The maximum amount of time to allow the query to
      *    run. If "$maxTimeMS" also exists in the modifiers document, this
      *    option will take precedence.
+     *
+     *  * min (document): The inclusive upper bound for a specific index.
      *
      *  * modifiers (document): Meta-operators modifying the output or behavior
      *    of a query.
@@ -64,6 +76,17 @@ class FindOne implements Executable
      *    exception at execution time if used.
      *
      *  * readPreference (MongoDB\Driver\ReadPreference): Read preference.
+     *
+     *  * returnKey (boolean): If true, returns only the index keys in the
+     *    resulting documents.
+     *
+     *  * session (MongoDB\Driver\Session): Client session.
+     *
+     *    Sessions are not supported for server versions < 3.6.
+     *
+     *  * showRecordId (boolean): Determines whether to return the record
+     *    identifier for each document. If true, adds a field $recordId to the
+     *    returned documents.
      *
      *  * skip (integer): The number of documents to skip before returning.
      *
@@ -87,8 +110,6 @@ class FindOne implements Executable
             $filter,
             ['limit' => 1] + $options
         );
-
-        $this->options = $options;
     }
 
     /**
@@ -106,5 +127,10 @@ class FindOne implements Executable
         $document = current($cursor->toArray());
 
         return ($document === false) ? null : $document;
+    }
+
+    public function getCommandDocument(Server $server)
+    {
+        return $this->find->getCommandDocument($server);
     }
 }
